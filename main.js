@@ -13,7 +13,7 @@ import {
   isValidCode,
   LanguageType,
   languageList,
-} from 'https://esm.sh/gh/cheeaun/lingva-scraper@3c866d1b17/src?deps=cheerio@1.0.0-rc.12';
+} from 'https://esm.sh/gh/cheeaun/lingva-scraper@3c866d1b17/src';
 
 const app = new Hono();
 
