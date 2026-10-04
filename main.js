@@ -13,7 +13,7 @@ import {
   isValidCode,
   LanguageType,
   languageList,
-} from 'https://esm.sh/gh/cheeaun/lingva-scraper@3c866d1b17/src';
+} from 'https://esm.sh/gh/cheeaun/lingva-scraper@3c866d1b17/src?target=denonext';
 
 const app = new Hono();
 
