@@ -1,26 +1,20 @@
-import { Hono } from 'https://deno.land/x/hono/mod.ts';
-import { cors } from 'https://deno.land/x/hono/middleware.ts';
+import { Hono } from 'https://deno.land/x/hono@v4.3.11/mod.ts';
+import { cors } from 'https://deno.land/x/hono@v4.3.11/middleware.ts';
 import {
   timing,
   startTime,
   endTime,
-} from 'https://deno.land/x/hono/middleware.ts';
+} from 'https://deno.land/x/hono@v4.3.11/middleware.ts';
 
-import {
-  getTranslationInfo,
-  getTranslationText,
-  getAudio,
-  isValidCode,
-  LanguageType,
-  languageList,
-} from 'https://esm.sh/gh/cheeaun/lingva-scraper@3c866d1b17/src?deps=cheerio@1.0.0-rc.12';
+import { isValidCode, LanguageType, languageList } from './languages.js';
+import { fetchTranslationData, getAudio } from './scraper.js';
 
 const app = new Hono();
 
 app.use(
   '*',
   cors({
-    allowMethods: ['GET', 'POST'],
+    allowMethods: ['GET'],
   }),
   timing({
     totalDescription: false,
@@ -63,7 +57,7 @@ app.get('/api/v1/audio/:lang/:query', async (c) => {
     }
     return c.json({ audio });
   } catch (error) {
-    return c.json({ error: error?.message || error }, 500);
+    return c.json({ error: error?.message || 'Failed to retrieve audio' }, 500);
   }
 });
 
@@ -77,19 +71,11 @@ app.get('/api/v1/:source/:target/:query', async (c) => {
     return c.json({ error: 'Invalid target language' }, 400);
   }
 
-  startTime(c, 'translation');
-  const translationPromise = getTranslationText(source, target, query).finally(
-    () => {
-      endTime(c, 'translation');
-    },
-  );
-  startTime(c, 'info');
-  const infoPromise = getTranslationInfo(source, target, query).finally(() => {
-    endTime(c, 'info');
-  });
-
   try {
-    const translation = await translationPromise;
+    startTime(c, 'translation');
+    const { translation, info } = await fetchTranslationData(source, target, query);
+    endTime(c, 'translation');
+
     if (!translation) {
       return c.json(
         { error: 'An error occurred while retrieving the translation' },
@@ -97,10 +83,9 @@ app.get('/api/v1/:source/:target/:query', async (c) => {
       );
     }
 
-    const info = await infoPromise;
     return c.json({ translation, info });
   } catch (error) {
-    return c.json({ error: error?.message || error }, 500);
+    return c.json({ error: error?.message || 'Translation failed' }, 500);
   }
 });
 
@@ -118,4 +103,5 @@ app.get('/api/v1/languages/:type?', (c) => {
 
 app.notFound((c) => c.json({ error: 'Not found' }, 404));
 
-Deno.serve(app.fetch);
+const port = Number(Deno.env.get('PORT')) || 8000;
+Deno.serve({ port }, app.fetch);
