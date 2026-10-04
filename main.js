@@ -13,7 +13,7 @@ import {
   isValidCode,
   LanguageType,
   languageList,
-} from 'https://esm.sh/gh/cheeaun/lingva-scraper@main/src?external=node:sqlite';
+} from 'https://esm.sh/gh/cheeaun/lingva-scraper@3c866d1b17/src?deps=undici@6.21.2';
 
 const app = new Hono();
 
